@@ -1246,7 +1246,12 @@
                 taskData,
                 todoData: JSON.parse(localStorage.getItem('todoData') || '{}'),
                 coffeeData,
-                moodData: JSON.parse(localStorage.getItem('moodData') || '{}')
+                moodData: JSON.parse(localStorage.getItem('moodData') || '{}'),
+                activeWorkState: {
+                    workState,
+                    currentWorkSession,
+                    currentRestSession
+                }
             };
         }
 
@@ -1302,9 +1307,20 @@
                     customExerciseTypes = parsed.customExerciseTypes || [];
                     taskData = parsed.taskData || {};
                     coffeeData = parsed.coffeeData || getDefaultCoffeeData();
+                    const importedActiveWorkState = parsed.activeWorkState || getDefaultActiveWorkState();
+                    workState = ['idle', 'working', 'resting'].includes(importedActiveWorkState.workState) ? importedActiveWorkState.workState : 'idle';
+                    currentWorkSession = normalizeSession(importedActiveWorkState.currentWorkSession);
+                    currentRestSession = normalizeSession(importedActiveWorkState.currentRestSession);
+                    if (workState === 'working' && !currentWorkSession) workState = 'idle';
+                    if (workState === 'resting' && !currentRestSession) workState = 'idle';
+                    if (workState === 'idle') {
+                        currentWorkSession = null;
+                        currentRestSession = null;
+                    }
                     localStorage.setItem('todoData', JSON.stringify(parsed.todoData || {}));
                     localStorage.setItem('moodData', JSON.stringify(parsed.moodData || {}));
                     lastExportFileName = file.name;
+                    saveData();
                     initData();
                     renderProfile();
                     applyThemeBackground();
