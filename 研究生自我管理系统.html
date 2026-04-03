@@ -1244,6 +1244,7 @@
                 ballTypeOptions,
                 customExerciseTypes,
                 taskData,
+                todoData: JSON.parse(localStorage.getItem('todoData') || '{}'),
                 coffeeData,
                 moodData: JSON.parse(localStorage.getItem('moodData') || '{}')
             };
@@ -1301,6 +1302,7 @@
                     customExerciseTypes = parsed.customExerciseTypes || [];
                     taskData = parsed.taskData || {};
                     coffeeData = parsed.coffeeData || getDefaultCoffeeData();
+                    localStorage.setItem('todoData', JSON.stringify(parsed.todoData || {}));
                     localStorage.setItem('moodData', JSON.stringify(parsed.moodData || {}));
                     lastExportFileName = file.name;
                     initData();
