@@ -5,25 +5,32 @@ import { prisma } from "@/lib/prisma"
 function getDateRange(period: string, startDateStr?: string | null, endDateStr?: string | null) {
   if (startDateStr && endDateStr) {
     return {
-      startDate: new Date(startDateStr),
-      endDate: new Date(endDateStr)
+      startDate: new Date(startDateStr + "T00:00:00"),
+      endDate: new Date(endDateStr + "T23:59:59")
     }
   }
 
   const now = new Date()
-  const startDate = new Date()
 
   if (period === "week") {
+    const startDate = new Date(now)
     startDate.setDate(now.getDate() - 6)
-  } else if (period === "month") {
-    // 本月第一天
-    startDate.setMonth(now.getMonth(), 1)
     startDate.setHours(0, 0, 0, 0)
+    const endDate = new Date(now)
+    endDate.setHours(23, 59, 59, 999)
+    return { startDate, endDate }
+  } else if (period === "month") {
+    // 本月第一天 00:00:00 本地时间
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+    // 今天 23:59:59 本地时间
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    return { startDate, endDate }
   } else {
-    startDate.setMonth(now.getMonth() - 11)
+    // 年度：过去12个月
+    const startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0, 0, 0, 0)
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    return { startDate, endDate }
   }
-
-  return { startDate, endDate: now }
 }
 
 export async function GET(request: NextRequest) {
@@ -93,11 +100,14 @@ export async function GET(request: NextRequest) {
   const waterByDate = aggregateByDate(waterRecords)
   const exerciseByDate = aggregateByDate(exerciseRecords)
 
-  // 生成日期列表
+  // 生成日期列表（使用本地日期）
   const dates: string[] = []
   const d = new Date(startDate)
   while (d <= endDate) {
-    dates.push(d.toISOString().split("T")[0])
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, "0")
+    const day = String(d.getDate()).padStart(2, "0")
+    dates.push(`${year}-${month}-${day}`)
     d.setDate(d.getDate() + 1)
   }
 
