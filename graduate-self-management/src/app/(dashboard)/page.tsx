@@ -263,7 +263,7 @@ export default function CheckinPage() {
                       <span className="font-medium">{session.startTime}</span>
                       <span className="text-gray-400 mx-1">-</span>
                       <span>{session.endTime || "进行中"}</span>
-                      {session.duration && (
+                      {session.duration != null && (
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
                       )}
                     </div>
@@ -297,7 +297,7 @@ export default function CheckinPage() {
                       <span className="font-medium">{session.startTime}</span>
                       <span className="text-gray-400 mx-1">-</span>
                       <span>{session.endTime || "进行中"}</span>
-                      {session.duration && (
+                      {session.duration != null && (
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
                       )}
                     </div>
