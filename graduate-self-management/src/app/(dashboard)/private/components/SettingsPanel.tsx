@@ -65,12 +65,16 @@ export function SettingsPanel({ config, onUpdateConfig, onChangePassword }: Sett
       toast.error('两次输入的新密码不一致')
       return
     }
+    if (oldPassword === newPassword) {
+      toast.error('新密码不能与原密码相同')
+      return
+    }
 
     setChangingPassword(true)
     try {
       const success = await onChangePassword(oldPassword, newPassword)
       if (success) {
-        toast.success('密码已修改')
+        toast.success('密码已修改，请使用新密码登录')
         setOldPassword('')
         setNewPassword('')
         setConfirmPassword('')
