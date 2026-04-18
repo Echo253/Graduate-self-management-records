@@ -189,6 +189,11 @@ export function usePrivateSpace() {
 
   // 修改密码
   const changePassword = useCallback(async (oldPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    // 0. 验证新密码
+    if (!newPassword || newPassword.length < 4) {
+      return { success: false, error: '新密码长度至少为4位' }
+    }
+
     // 1. 验证原密码
     try {
       const encryptedConfig = await getConfig()
@@ -218,9 +223,10 @@ export function usePrivateSpace() {
       const newEncryptedConfig = await encrypt(newConfig, newPassword)
       const newEncryptedRecords = await encrypt(decryptedRecords, newPassword)
 
-      // 4. 原子性保存（先保存配置，再保存记录）
-      await saveConfig(newEncryptedConfig)
+      // 4. 原子性保存（先保存记录，再保存配置）
+      // 如果记录保存失败，配置仍使用旧密码，用户可以重试
       await saveRecords(newEncryptedRecords)
+      await saveConfig(newEncryptedConfig)
 
       // 5. 更新内存状态和 session
       setConfig(newConfig)
