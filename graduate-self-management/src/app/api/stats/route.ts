@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-function getDateRange(period: string) {
+function getDateRange(period: string, startDateStr?: string | null, endDateStr?: string | null) {
+  if (startDateStr && endDateStr) {
+    return {
+      startDate: new Date(startDateStr),
+      endDate: new Date(endDateStr)
+    }
+  }
+
   const now = new Date()
   const startDate = new Date()
 
   if (period === "week") {
     startDate.setDate(now.getDate() - 6)
   } else if (period === "month") {
-    startDate.setDate(now.getDate() - 29)
+    // 本月第一天
+    startDate.setMonth(now.getMonth(), 1)
+    startDate.setHours(0, 0, 0, 0)
   } else {
     startDate.setMonth(now.getMonth() - 11)
   }
@@ -24,7 +33,9 @@ export async function GET(request: NextRequest) {
   }
 
   const period = request.nextUrl.searchParams.get("period") || "week"
-  const { startDate, endDate } = getDateRange(period)
+  const startDateParam = request.nextUrl.searchParams.get("startDate")
+  const endDateParam = request.nextUrl.searchParams.get("endDate")
+  const { startDate, endDate } = getDateRange(period, startDateParam, endDateParam)
 
   // 获取工作时段
   const workSessions = await prisma.workSession.findMany({
@@ -91,6 +102,10 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
+    dateRange: {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    },
     workSessions: dates.map(date => ({
       date,
       duration: (workByDate.get(date) || []).reduce((sum, s) => sum + (s.duration || 0), 0)

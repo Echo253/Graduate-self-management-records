@@ -1,31 +1,44 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, Calendar } from "lucide-react"
+import { Calendar, BarChart3 } from "lucide-react"
 import { toast } from "sonner"
+import { DateRangePicker } from "@/components/stats/DateRangePicker"
+import { WorkChart } from "@/components/stats/WorkChart"
+import { CoffeeChart } from "@/components/stats/CoffeeChart"
+import { SummaryCards } from "@/components/stats/SummaryCards"
 
 type StatsData = {
+  dateRange: {
+    startDate: string
+    endDate: string
+  }
   workSessions: { date: string; duration: number }[]
-  restSessions: { date: string; duration: number }[]
   coffeeRecords: { date: string; count: number; caffeine: number }[]
   waterRecords: { date: string; amount: number }[]
   exerciseRecords: { date: string; count: number; calories: number }[]
 }
 
 export default function StatsPage() {
-  const [period, setPeriod] = useState<"week" | "month" | "year">("week")
+  const [period, setPeriod] = useState<"week" | "month" | "year" | "custom">("week")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [stats, setStats] = useState<StatsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState("")
-  const [dateSummary, setDateSummary] = useState<any>(null)
 
   const fetchStats = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch(`/api/stats?period=${period}`)
+      const params = new URLSearchParams()
+      if (period === "custom" && startDate && endDate) {
+        params.set("startDate", startDate)
+        params.set("endDate", endDate)
+      } else {
+        params.set("period", period)
+      }
+      const res = await fetch(`/api/stats?${params}`)
       const data = await res.json()
       setStats(data)
     } catch {
@@ -33,153 +46,111 @@ export default function StatsPage() {
     } finally {
       setLoading(false)
     }
-  }, [period])
+  }, [period, startDate, endDate])
 
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
 
-  const viewDate = async () => {
-    if (!selectedDate) return
+  const handlePeriodChange = (newPeriod: "week" | "month" | "year" | "custom") => {
+    setPeriod(newPeriod)
+    if (newPeriod !== "custom") {
+      setStartDate("")
+      setEndDate("")
+    }
+  }
+
+  const handleDateChange = (start: string, end: string) => {
+    setStartDate(start)
+    setEndDate(end)
+  }
+
+  const handleBarClick = async (date: string) => {
     try {
-      const res = await fetch(`/api/stats/date?date=${selectedDate}`)
+      const res = await fetch(`/api/stats/date?date=${date}`)
       const data = await res.json()
-      setDateSummary(data)
+      toast.success(
+        `${date}: 工作${data.workMinutes}分钟, 咖啡${data.coffeeCount}杯, 饮水${data.waterAmount}ml`
+      )
     } catch {
-      toast.error("获取数据失败")
+      toast.error("获取详情失败")
     }
   }
 
-  const getLabels = () => {
-    const labels: string[] = []
-    const now = new Date()
-
-    if (period === "week") {
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now)
-        d.setDate(d.getDate() - i)
-        labels.push(d.toLocaleDateString("zh-CN", { month: "short", day: "numeric" }))
-      }
-    } else if (period === "month") {
-      for (let i = 29; i >= 0; i -= 3) {
-        const d = new Date(now)
-        d.setDate(d.getDate() - i)
-        labels.push(d.toLocaleDateString("zh-CN", { month: "short", day: "numeric" }))
-      }
-    } else {
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(now)
-        d.setMonth(d.getMonth() - i)
-        labels.push(d.toLocaleDateString("zh-CN", { month: "short" }))
-      }
-    }
-    return labels
-  }
-
-  const getWorkData = () => {
-    if (!stats) return []
-    const labels = getLabels()
-    return labels.map((_, i) => {
-      const idx = period === "week" ? i : period === "month" ? Math.floor(i / 3) : i
-      return stats.workSessions[idx]?.duration || 0
+  const formatDateRange = () => {
+    if (!stats?.dateRange) return ""
+    const start = new Date(stats.dateRange.startDate).toLocaleDateString("zh-CN", {
+      month: "short",
+      day: "numeric"
     })
-  }
-
-  const getCoffeeData = () => {
-    if (!stats) return { counts: [], caffeine: [] }
-    const labels = getLabels()
-    const counts = labels.map((_, i) => stats.coffeeRecords[i]?.count || 0)
-    const caffeine = labels.map((_, i) => stats.coffeeRecords[i]?.caffeine || 0)
-    return { counts, caffeine }
+    const end = new Date(stats.dateRange.endDate).toLocaleDateString("zh-CN", {
+      month: "short",
+      day: "numeric"
+    })
+    return `${start} - ${end}`
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">加载中...</div>
+    return (
+      <div className="flex items-center justify-center h-64">
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          加载中...
+        </motion.div>
+      </div>
+    )
   }
 
-  const labels = getLabels()
-  const workData = getWorkData()
-  const coffeeData = getCoffeeData()
+  const totalWork = stats?.workSessions.reduce((sum, s) => sum + s.duration, 0) || 0
+  const totalCoffee = stats?.coffeeRecords.reduce((sum, s) => sum + s.count, 0) || 0
+  const totalCaffeine = stats?.coffeeRecords.reduce((sum, s) => sum + s.caffeine, 0) || 0
+  const totalWater = stats?.waterRecords.reduce((sum, s) => sum + s.amount, 0) || 0
+  const totalCalories = stats?.exerciseRecords.reduce((sum, s) => sum + s.calories, 0) || 0
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">统计分析</h1>
-
-      {/* 日期查看 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            查看指定日期
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-center">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-48"
-            />
-            <Button onClick={viewDate}>查看</Button>
-          </div>
-
-          {dateSummary && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-2xl font-bold text-green-600">{dateSummary.workMinutes}分钟</div>
-                <div className="text-xs text-gray-600">工作时长</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-2xl font-bold text-amber-600">{dateSummary.coffeeCount}杯</div>
-                <div className="text-xs text-gray-600">咖啡</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-2xl font-bold text-blue-600">{dateSummary.waterAmount}ml</div>
-                <div className="text-xs text-gray-600">饮水</div>
-              </div>
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="text-2xl font-bold text-rose-600">{dateSummary.exerciseCount}次</div>
-                <div className="text-xs text-gray-600">运动</div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 周期选择 */}
-      <div className="flex gap-3">
-        {(["week", "month", "year"] as const).map((p) => (
-          <Button
-            key={p}
-            variant={period === p ? "default" : "outline"}
-            onClick={() => setPeriod(p)}
-          >
-            {p === "week" ? "本周" : p === "month" ? "本月" : "本年"}
-          </Button>
-        ))}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold">统计分析</h1>
+        <DateRangePicker
+          period={period}
+          startDate={startDate}
+          endDate={endDate}
+          onPeriodChange={handlePeriodChange}
+          onDateChange={handleDateChange}
+        />
       </div>
 
-      {/* 图表 */}
+      {stats?.dateRange && (
+        <p className="text-sm text-gray-500 flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          {formatDateRange()}
+        </p>
+      )}
+
+      <SummaryCards
+        totalWork={totalWork}
+        totalCoffee={totalCoffee}
+        totalCaffeine={totalCaffeine}
+        totalWater={totalWater}
+        totalCalories={totalCalories}
+      />
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">每日工作时长（小时）</CardTitle>
+            <CardTitle className="text-lg">工作时长</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-end gap-1">
-              {labels.map((label, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-green-500 rounded-t"
-                    style={{ height: `${Math.max((workData[i] / 60) * 10, 4)}px` }}
-                  />
-                  <span className="text-xs text-gray-500 mt-1 truncate w-full text-center">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <WorkChart
+              data={stats?.workSessions || []}
+              onBarClick={handleBarClick}
+            />
           </CardContent>
         </Card>
 
@@ -188,60 +159,47 @@ export default function StatsPage() {
             <CardTitle className="text-lg">咖啡摄入</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-end gap-1">
-              {labels.map((label, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-amber-500 rounded-t"
-                    style={{ height: `${Math.max(coffeeData.counts[i] * 20, 4)}px` }}
-                  />
-                  <span className="text-xs text-gray-500 mt-1 truncate w-full text-center">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <CoffeeChart data={stats?.coffeeRecords || []} />
           </CardContent>
         </Card>
       </div>
 
-      {/* 汇总 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            汇总统计
+            详细数据
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
               <div className="text-2xl font-bold text-green-600">
-                {stats?.workSessions.reduce((sum, s) => sum + s.duration, 0) || 0}
+                {stats?.workSessions.length || 0}
               </div>
-              <div className="text-sm text-gray-600">总工作分钟</div>
+              <div className="text-sm text-gray-600">记录天数</div>
             </div>
-            <div className="text-center p-4 bg-amber-50 rounded-lg">
+            <div>
               <div className="text-2xl font-bold text-amber-600">
-                {stats?.coffeeRecords.reduce((sum, s) => sum + s.count, 0) || 0}
+                {totalCoffee}
               </div>
               <div className="text-sm text-gray-600">总咖啡杯数</div>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div>
               <div className="text-2xl font-bold text-blue-600">
-                {stats?.waterRecords.reduce((sum, s) => sum + s.amount, 0) || 0}
+                {(totalWater / 1000).toFixed(1)}L
               </div>
-              <div className="text-sm text-gray-600">总饮水量(ml)</div>
+              <div className="text-sm text-gray-600">总饮水量</div>
             </div>
-            <div className="text-center p-4 bg-rose-50 rounded-lg">
+            <div>
               <div className="text-2xl font-bold text-rose-600">
-                {stats?.exerciseRecords.reduce((sum, s) => sum + s.calories, 0) || 0}
+                {totalCalories}
               </div>
-              <div className="text-sm text-gray-600">总消耗(kcal)</div>
+              <div className="text-sm text-gray-600">总消耗热量</div>
             </div>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
