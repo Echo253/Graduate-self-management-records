@@ -15,8 +15,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
-    studentId: ""
+    name: ""
   })
   const [loading, setLoading] = useState(false)
 
@@ -42,8 +41,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: form.email,
           password: form.password,
-          name: form.name,
-          studentId: form.studentId || undefined
+          name: form.name
         })
       })
 
@@ -91,15 +89,6 @@ export default function RegisterPage() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="studentId">学号/工号</Label>
-              <Input
-                id="studentId"
-                placeholder="可选"
-                value={form.studentId}
-                onChange={(e) => setForm({ ...form, studentId: e.target.value })}
               />
             </div>
             <div className="space-y-2">

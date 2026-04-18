@@ -13,7 +13,6 @@ import { toast } from "sonner"
 export default function ProfilePage() {
   const { data: session, update } = useSession()
   const [name, setName] = useState(session?.user?.name || "")
-  const [studentId, setStudentId] = useState(session?.user?.studentId || "")
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
@@ -22,11 +21,11 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, studentId })
+        body: JSON.stringify({ name })
       })
       if (res.ok) {
         toast.success("保存成功")
-        await update()
+        await update({})  // 传递空对象触发 POST 请求
       } else {
         toast.error("保存失败")
       }
@@ -51,7 +50,7 @@ export default function ProfilePage() {
       })
       if (res.ok) {
         toast.success("头像已更新")
-        await update()
+        await update({})  // 传递空对象触发 POST 请求
       } else {
         toast.error("上传失败")
       }
@@ -80,8 +79,8 @@ export default function ProfilePage() {
             </Avatar>
             <div>
               <Label htmlFor="avatar" className="cursor-pointer">
-                <Button variant="outline" asChild>
-                  <span>更换头像</span>
+                <Button variant="outline" render={<span />} nativeButton={false}>
+                  更换头像
                 </Button>
               </Label>
               <input
@@ -113,15 +112,6 @@ export default function ProfilePage() {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="studentId">学号/工号</Label>
-              <Input
-                id="studentId"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
               />
             </div>
 

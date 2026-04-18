@@ -15,7 +15,6 @@ model User {
   email           String    @unique
   password        String
   name            String
-  studentId       String?   @map("student_id")
   avatar          String?
   backgroundImage String?   @map("background_image")
   createdAt       DateTime  @default(now())

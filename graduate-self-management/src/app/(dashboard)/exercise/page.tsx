@@ -152,7 +152,7 @@ export default function ExercisePage() {
             {selectedType === "ball" && (
               <div className="space-y-2">
                 <Label>球类运动</Label>
-                <Select value={subtype} onValueChange={setSubtype}>
+                <Select value={subtype} onValueChange={(v) => v && setSubtype(v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="选择球类" />
                   </SelectTrigger>

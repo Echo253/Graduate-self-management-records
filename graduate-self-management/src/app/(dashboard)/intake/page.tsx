@@ -184,7 +184,7 @@ export default function IntakePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>品牌</Label>
-                <Select value={brand} onValueChange={setBrand}>
+                <Select value={brand} onValueChange={(v) => v && setBrand(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -197,7 +197,7 @@ export default function IntakePage() {
               </div>
               <div className="space-y-2">
                 <Label>品类</Label>
-                <Select value={coffeeType} onValueChange={setCoffeeType}>
+                <Select value={coffeeType} onValueChange={(v) => v && setCoffeeType(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

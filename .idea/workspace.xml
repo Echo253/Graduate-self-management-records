@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="802d7c7b-48cf-4239-bffd-0a2aa4eb1749" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/prisma.config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/exercise/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/exercise/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/intake/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/intake/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/profile/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/(dashboard)/profile/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/api/auth/register/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/api/auth/register/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/api/coffee/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/api/coffee/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/app/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/components/layout/DashboardLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/src/components/layout/DashboardLayout.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/graduate-self-management" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;tktogether&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Echo253/Graduate-self-management-records&quot;,
+    &quot;accountId&quot;: &quot;69fda1cb-f876-4360-b199-f5011cb4fa1a&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="3C7Oyvhf2pZFtggL9PXg8gPfY6P" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "feature/nextjs-refactor",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "E:\\Projects\\FlutterProjects\\Graduate-self-management-records\\graduate-self-management\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PY-252.25557.178" />
+        <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="802d7c7b-48cf-4239-bffd-0a2aa4eb1749" name="更改" comment="" />
+      <created>1775733399377</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1775733399377</updated>
+      <workItem from="1775733400641" duration="46000" />
+      <workItem from="1775743260822" duration="4895000" />
+      <workItem from="1775749483608" duration="618000" />
+      <workItem from="1775750113785" duration="1000" />
+      <workItem from="1776486943198" duration="11230000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

@@ -6,14 +6,13 @@ import { z } from "zod"
 const registerSchema = z.object({
   email: z.string().email("请输入有效的邮箱地址"),
   password: z.string().min(6, "密码至少6个字符"),
-  name: z.string().min(1, "请输入姓名"),
-  studentId: z.string().optional()
+  name: z.string().min(1, "请输入姓名")
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, name, studentId } = registerSchema.parse(body)
+    const { email, password, name } = registerSchema.parse(body)
 
     const existingUser = await prisma.user.findUnique({
       where: { email }
@@ -32,21 +31,19 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         password: hashedPassword,
-        name,
-        studentId: studentId || null
+        name
       }
     })
 
     return NextResponse.json({
       id: user.id,
       email: user.email,
-      name: user.name,
-      studentId: user.studentId
+      name: user.name
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: error.issues[0].message },
         { status: 400 }
       )
     }

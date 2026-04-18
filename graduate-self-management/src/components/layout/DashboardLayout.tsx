@@ -57,9 +57,6 @@ export default function DashboardLayout({
           <div className="flex-1 min-w-0">
             <div className="text-xs uppercase tracking-wide text-blue-500">当前用户</div>
             <div className="font-bold text-gray-800 truncate">{session?.user?.name}</div>
-            {session?.user?.studentId && (
-              <div className="text-xs text-gray-600">学号：{session.user.studentId}</div>
-            )}
           </div>
         </div>
       </div>
@@ -89,30 +86,21 @@ export default function DashboardLayout({
 
       <Separator />
 
-      <div className="p-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <User className="h-4 w-4" />
-              个人设置
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuLabel>{session?.user?.email}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4 mr-2" />
-                修改信息
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
-              <LogOut className="h-4 w-4 mr-2" />
-              退出登录
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="p-4 space-y-2">
+        <Link href="/profile">
+          <Button variant="outline" className="w-full justify-start gap-2">
+            <User className="h-4 w-4" />
+            个人设置
+          </Button>
+        </Link>
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2 text-red-600 hover:text-red-700"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          <LogOut className="h-4 w-4" />
+          退出登录
+        </Button>
       </div>
     </>
   )
@@ -128,10 +116,12 @@ export default function DashboardLayout({
       <div className="flex flex-col flex-1">
         <header className="md:hidden flex items-center justify-between p-4 bg-white border-b shadow-sm">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" />
+              }
+            >
+              <Menu className="h-6 w-6" />
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64">
               <NavContent />

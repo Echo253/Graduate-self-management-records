@@ -2,24 +2,24 @@ import "next-auth"
 
 declare module "next-auth" {
   interface User {
-    studentId?: string | null
+    id: string
+    email: string
+    name: string
     avatar?: string | null
     backgroundImage?: string | null
   }
+
+  interface Account {}
+
   interface Session {
-    user: User & {
-      id: string
-      studentId: string | null
-      avatar: string | null
-      backgroundImage: string | null
-    }
+    user: User
+    expires: ISODateString
   }
 }
 
-declare module "next-auth/jwt" {
+declare module "@auth/core/jwt" {
   interface JWT {
     id: string
-    studentId?: string | null
     avatar?: string | null
     backgroundImage?: string | null
   }

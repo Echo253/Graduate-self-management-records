@@ -29,21 +29,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(record)
 }
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "未授权" }, { status: 401 })
-  }
-
-  const { id } = await params
-
-  await prisma.coffeeRecord.deleteMany({
-    where: { id, userId: session.user.id }
-  })
-
-  return NextResponse.json({ success: true })
-}

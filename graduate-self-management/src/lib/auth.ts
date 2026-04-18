@@ -37,7 +37,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          studentId: user.studentId,
           avatar: user.avatar,
           backgroundImage: user.backgroundImage
         }
@@ -45,19 +44,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
-        token.studentId = user.studentId
         token.avatar = user.avatar
         token.backgroundImage = user.backgroundImage
       }
+
+      // 处理 session update，从数据库重新获取用户数据
+      if (trigger === "update" && token.id) {
+        const updatedUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { avatar: true, name: true }
+        })
+        if (updatedUser) {
+          token.avatar = updatedUser.avatar
+          token.name = updatedUser.name
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.studentId = token.studentId as string | null
         session.user.avatar = token.avatar as string | null
         session.user.backgroundImage = token.backgroundImage as string | null
       }
