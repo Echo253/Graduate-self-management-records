@@ -4,8 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckSquare, Plus, Trash2, RotateCcw } from "lucide-react"
+import { CheckSquare, Plus, Trash2, RotateCcw, Pencil } from "lucide-react"
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 
 type Todo = {
   id: string
@@ -19,6 +25,8 @@ export default function TodoPage() {
   const [loading, setLoading] = useState(true)
   const [newTodo, setNewTodo] = useState("")
   const [showCompleted, setShowCompleted] = useState(false)
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
+  const [editContent, setEditContent] = useState("")
 
   const fetchData = useCallback(async () => {
     try {
@@ -85,6 +93,38 @@ export default function TodoPage() {
     }
   }
 
+  const openEditTodo = (todo: Todo) => {
+    setEditingTodo(todo)
+    setEditContent(todo.content)
+  }
+
+  const updateTodo = async () => {
+    if (!editingTodo) return
+    if (!editContent.trim()) {
+      toast.error("内容不能为空")
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/todos/${editingTodo.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editContent.trim() })
+      })
+      if (res.ok) {
+        toast.success("已更新")
+        setEditingTodo(null)
+        setEditContent("")
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
+      }
+    } catch {
+      toast.error("更新失败")
+    }
+  }
+
   const pendingTodos = todos.filter(t => !t.completed)
   const completedTodos = todos.filter(t => t.completed)
 
@@ -138,6 +178,9 @@ export default function TodoPage() {
                     className="h-6 w-6 p-0 rounded-full border-2 border-gray-300"
                   />
                   <span className="flex-1">{todo.content}</span>
+                  <Button variant="ghost" size="sm" onClick={() => openEditTodo(todo)}>
+                    <Pencil className="h-4 w-4 text-gray-500" />
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => deleteTodo(todo.id)}>
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
@@ -180,6 +223,9 @@ export default function TodoPage() {
                       ✓
                     </Button>
                     <span className="flex-1 line-through text-gray-500">{todo.content}</span>
+                    <Button variant="ghost" size="sm" onClick={() => openEditTodo(todo)}>
+                      <Pencil className="h-4 w-4 text-gray-500" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => deleteTodo(todo.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -190,6 +236,28 @@ export default function TodoPage() {
           </CardContent>
         )}
       </Card>
+
+      <Dialog open={!!editingTodo} onOpenChange={(open) => !open && setEditingTodo(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑待办事项</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="输入待办事项内容"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && updateTodo()}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingTodo(null)}>
+                取消
+              </Button>
+              <Button onClick={updateTodo}>保存</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
