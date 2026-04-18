@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  studentId       String?   @map("student_id")
+  avatar          String?
+  backgroundImage String?   @map("background_image")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workSessions    WorkSession[]
+  restSessions    RestSession[]
+  coffeeRecords   CoffeeRecord[]
+  waterRecords    WaterRecord[]
+  toiletRecords   ToiletRecord[]
+  exerciseRecords ExerciseRecord[]
+  todos           Todo[]
+  moodRecords     MoodRecord[]
+  coffeeBrands    CoffeeBrand[]
+
+  @@map("users")
+}
+
+model WorkSession {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  date           String
+  startTime      String    @map("start_time")
+  endTime        String?   @map("end_time")
+  startTimestamp DateTime  @map("start_timestamp")
+  endTimestamp   DateTime? @map("end_timestamp")
+  duration       Int?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, date])
+  @@map("work_sessions")
+}
+
+model RestSession {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  date           String
+  startTime      String    @map("start_time")
+  endTime        String?   @map("end_time")
+  startTimestamp DateTime  @map("start_timestamp")
+  endTimestamp   DateTime? @map("end_timestamp")
+  duration       Int?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, date])
+  @@map("rest_sessions")
+}
+
+model CoffeeRecord {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  date       String
+  brand      String
+  type       String   @map("coffee_type")
+  caffeine   Int
+  customName String?  @map("custom_name")
+  time       String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("coffee_records")
+}
+
+model WaterRecord {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      String
+  amount    Int
+  time      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("water_records")
+}
+
+model ToiletRecord {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      String
+  time      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("toilet_records")
+}
+
+model ExerciseRecord {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      String
+  type      String
+  subtype   String?
+  startTime String?  @map("start_time")
+  endTime   String?  @map("end_time")
+  calories  Int?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("exercise_records")
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  content   String
+  completed Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("todos")
+}
+
+model MoodRecord {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      String
+  mood      String
+  time      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("mood_records")
+}
+
+model CoffeeBrand {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  types     Json
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("coffee_brands")
+}
