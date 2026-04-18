@@ -71,6 +71,10 @@ export default function IntakePage() {
   const [editCaffeine, setEditCaffeine] = useState(0)
   const [editCustomName, setEditCustomName] = useState("")
 
+  // 饮水编辑状态
+  const [editingWater, setEditingWater] = useState<WaterRecord | null>(null)
+  const [editWaterAmount, setEditWaterAmount] = useState(0)
+
   const today = new Date().toISOString().split("T")[0]
 
   const fetchTodayData = useCallback(async () => {
@@ -188,6 +192,32 @@ export default function IntakePage() {
       if (res.ok) {
         toast.success("已更新")
         setEditingCoffee(null)
+        fetchTodayData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
+      }
+    } catch {
+      toast.error("更新失败")
+    }
+  }
+
+  const openEditWater = (record: WaterRecord) => {
+    setEditingWater(record)
+    setEditWaterAmount(record.amount)
+  }
+
+  const updateWater = async () => {
+    if (!editingWater) return
+    try {
+      const res = await fetch(`/api/water/${editingWater.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: editWaterAmount })
+      })
+      if (res.ok) {
+        toast.success("已更新")
+        setEditingWater(null)
         fetchTodayData()
       } else {
         const data = await res.json()
@@ -386,9 +416,14 @@ export default function IntakePage() {
                         <span className="font-medium text-blue-600">{record.amount}ml</span>
                         <span className="text-gray-400 text-xs ml-2">{record.time}</span>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => deleteWater(record.id)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEditWater(record)}>
+                          <Pencil className="h-4 w-4 text-gray-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteWater(record.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -458,6 +493,48 @@ export default function IntakePage() {
                 取消
               </Button>
               <Button onClick={updateCoffee} className="flex-1">
+                保存
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 饮水编辑对话框 */}
+      <Dialog open={!!editingWater} onOpenChange={() => setEditingWater(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑饮水记录</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>水量 (ml)</Label>
+              <div className="flex gap-2 flex-wrap">
+                {[100, 200, 250, 500].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={editWaterAmount === amount ? "default" : "outline"}
+                    onClick={() => setEditWaterAmount(amount)}
+                  >
+                    {amount}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>自定义水量</Label>
+              <Input
+                type="number"
+                value={editWaterAmount}
+                onChange={(e) => setEditWaterAmount(Number(e.target.value))}
+                placeholder="输入ml数"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEditingWater(null)} className="flex-1">
+                取消
+              </Button>
+              <Button onClick={updateWater} className="flex-1">
                 保存
               </Button>
             </div>
