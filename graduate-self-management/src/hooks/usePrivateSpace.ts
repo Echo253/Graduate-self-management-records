@@ -225,6 +225,7 @@ export function usePrivateSpace() {
       // 5. 更新内存状态和 session
       setConfig(newConfig)
       setPassword(newPassword)
+      setRecords(decryptedRecords)
       sessionStorage.setItem(SESSION_PASSWORD_KEY, newPassword)
       sessionStorage.setItem(GRACE_STORAGE_KEY, Date.now().toString())
 
