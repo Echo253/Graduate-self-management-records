@@ -15,6 +15,7 @@ import {
 
 const GRACE_STORAGE_KEY = 'private-space-last-auth'
 const SESSION_PASSWORD_KEY = 'private-space-password'
+const ENTRY_CONFIG_KEY = 'private-space-entry'
 
 export function usePrivateSpace() {
   const [isInitialized, setIsInitialized] = useState(false)
@@ -89,6 +90,12 @@ export function usePrivateSpace() {
     // 初始化空记录
     const encryptedRecords = await encrypt([], newPassword)
     await saveRecords(encryptedRecords)
+
+    // 保存入口配置到 localStorage（非加密，用于导航显示）
+    localStorage.setItem(ENTRY_CONFIG_KEY, JSON.stringify({
+      mode: entryMode,
+      name: entryName
+    }))
 
     setConfig(newConfig)
     setRecords([])
@@ -226,6 +233,7 @@ export function usePrivateSpace() {
     setIsAuthenticated(false)
     sessionStorage.removeItem(SESSION_PASSWORD_KEY)
     sessionStorage.removeItem(GRACE_STORAGE_KEY)
+    localStorage.removeItem(ENTRY_CONFIG_KEY)
   }, [])
 
   return {

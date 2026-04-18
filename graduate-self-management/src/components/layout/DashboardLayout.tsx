@@ -27,7 +27,8 @@ import {
   Menu,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Lock
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -42,6 +43,11 @@ const navItems = [
   { href: "/stats", label: "统计分析", icon: BarChart3 },
 ]
 
+interface PrivateSpaceEntry {
+  mode: 'hidden' | 'visible'
+  name: string
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -52,9 +58,22 @@ export default function DashboardLayout({
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [privateSpaceEntry, setPrivateSpaceEntry] = useState<PrivateSpaceEntry | null>(null)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    // 从 localStorage 读取私密空间入口配置
+    try {
+      const entryConfig = localStorage.getItem('private-space-entry')
+      if (entryConfig) {
+        setPrivateSpaceEntry(JSON.parse(entryConfig))
+      }
+    } catch {
+      setPrivateSpaceEntry(null)
+    }
   }, [])
 
   const ThemeToggle = () => {
@@ -126,6 +145,20 @@ export default function DashboardLayout({
             </Link>
           )
         })}
+        {privateSpaceEntry?.mode === 'visible' && (
+          <Link
+            href="/private-space"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+              pathname === "/private-space"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "hover:bg-accent text-foreground"
+            }`}
+          >
+            <Lock className="h-5 w-5" />
+            <span className="font-medium">{privateSpaceEntry.name || "私密空间"}</span>
+          </Link>
+        )}
       </nav>
 
       <Separator />
