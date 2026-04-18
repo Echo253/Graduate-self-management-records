@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { encrypt, decrypt, verifyPassword } from '@/lib/encryption'
+import { encrypt, decrypt } from '@/lib/encryption'
 import {
   PrivateRecord,
   PrivateSpaceConfig,
@@ -10,8 +10,6 @@ import {
   saveConfig,
   getRecords,
   saveRecords,
-  exportAllData,
-  importAllData,
   clearAll
 } from '@/lib/private-db'
 
@@ -25,20 +23,6 @@ export function usePrivateSpace() {
   const [records, setRecords] = useState<PrivateRecord[]>([])
   const [password, setPassword] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-
-  // 检查是否在免验证期内
-  const checkGracePeriod = useCallback((cfg: PrivateSpaceConfig): boolean => {
-    if (cfg.gracePeriod === 0) return false
-
-    const lastAuth = sessionStorage.getItem(GRACE_STORAGE_KEY)
-    if (!lastAuth) return false
-
-    const lastAuthTime = parseInt(lastAuth, 10)
-    const now = Date.now()
-    const graceMs = cfg.gracePeriod * 60 * 1000
-
-    return (now - lastAuthTime) < graceMs
-  }, [])
 
   // 初始化：检查是否已设置密码
   const initialize = useCallback(async () => {
