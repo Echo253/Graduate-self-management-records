@@ -187,6 +187,57 @@ export function usePrivateSpace() {
     setConfig(newConfig)
   }, [password, config])
 
+  // 修改密码
+  const changePassword = useCallback(async (oldPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    // 1. 验证原密码
+    try {
+      const encryptedConfig = await getConfig()
+      if (!encryptedConfig) {
+        return { success: false, error: '未找到配置数据' }
+      }
+
+      // 尝试用原密码解密配置，验证密码是否正确
+      const testConfig = await decrypt<PrivateSpaceConfig>(encryptedConfig, oldPassword)
+
+      // 2. 获取并解密所有数据
+      const encryptedRecords = await getRecords()
+      let decryptedRecords: PrivateRecord[] = []
+      if (encryptedRecords) {
+        decryptedRecords = await decrypt<PrivateRecord[]>(encryptedRecords, oldPassword)
+      }
+
+      // 3. 用新密码重新加密所有数据
+      const newTestValue = 'test'
+      const newPasswordHash = await encrypt(newTestValue, newPassword)
+
+      const newConfig: PrivateSpaceConfig = {
+        ...testConfig,
+        passwordHash: newPasswordHash
+      }
+
+      const newEncryptedConfig = await encrypt(newConfig, newPassword)
+      const newEncryptedRecords = await encrypt(decryptedRecords, newPassword)
+
+      // 4. 原子性保存（先保存配置，再保存记录）
+      await saveConfig(newEncryptedConfig)
+      await saveRecords(newEncryptedRecords)
+
+      // 5. 更新内存状态和 session
+      setConfig(newConfig)
+      setPassword(newPassword)
+      sessionStorage.setItem(SESSION_PASSWORD_KEY, newPassword)
+      sessionStorage.setItem(GRACE_STORAGE_KEY, Date.now().toString())
+
+      return { success: true }
+    } catch (error) {
+      // 解密失败说明原密码错误
+      if (error instanceof Error && error.message.includes('decrypt')) {
+        return { success: false, error: '原密码错误' }
+      }
+      return { success: false, error: '修改密码失败，请重试' }
+    }
+  }, [])
+
   // 导出数据（解密后 Base64 编码，明文 JSON）
   const exportData = useCallback(async (): Promise<string> => {
     // 直接返回解密后的明文数据
@@ -249,6 +300,7 @@ export function usePrivateSpace() {
     updateRecord,
     deleteRecord,
     updateConfig,
+    changePassword,
     exportData,
     importData,
     clearAllData
