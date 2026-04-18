@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Undo, Trash2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Plus, Undo, Trash2, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 type ToiletRecord = {
@@ -14,6 +15,8 @@ type ToiletRecord = {
 export default function ToiletPage() {
   const [records, setRecords] = useState<ToiletRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingRecord, setEditingRecord] = useState<ToiletRecord | null>(null)
+  const [editTime, setEditTime] = useState("")
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -66,6 +69,41 @@ export default function ToiletPage() {
     await deleteRecord(lastRecord.id)
   }
 
+  const openEditToilet = (record: ToiletRecord) => {
+    setEditingRecord(record)
+    setEditTime(record.time)
+  }
+
+  const updateToilet = async () => {
+    if (!editingRecord) return
+
+    // 验证时间格式
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
+    if (!timeRegex.test(editTime)) {
+      toast.error("时间格式无效")
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/toilet/${editingRecord.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ time: editTime })
+      })
+
+      if (res.ok) {
+        toast.success("已更新")
+        setEditingRecord(null)
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
+      }
+    } catch {
+      toast.error("操作失败")
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>
   }
@@ -108,9 +146,14 @@ export default function ToiletPage() {
                     {records.map((record) => (
                       <div key={record.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                         <span>{record.time}</span>
-                        <Button variant="ghost" size="sm" onClick={() => deleteRecord(record.id)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => openEditToilet(record)}>
+                            <Pencil className="h-4 w-4 text-blue-500" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => deleteRecord(record.id)}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -133,6 +176,33 @@ export default function ToiletPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑如厕记录</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">时间</label>
+              <input
+                type="time"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingRecord(null)}>
+                取消
+              </Button>
+              <Button onClick={updateToilet}>
+                保存
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
