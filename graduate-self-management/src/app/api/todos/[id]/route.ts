@@ -34,12 +34,21 @@ export async function PATCH(
       return NextResponse.json({ error: "没有要更新的内容" }, { status: 400 })
     }
 
-    const todo = await prisma.todo.updateMany({
+    const result = await prisma.todo.updateMany({
       where: { id, userId: session.user.id },
       data: updateData
     })
 
-    return NextResponse.json(todo)
+    if (result.count === 0) {
+      return NextResponse.json({ error: "记录不存在" }, { status: 404 })
+    }
+
+    // 返回更新后的记录
+    const updatedTodo = await prisma.todo.findFirst({
+      where: { id, userId: session.user.id }
+    })
+
+    return NextResponse.json(updatedTodo)
   } catch (error) {
     console.error("更新待办事项失败:", error)
     return NextResponse.json({ error: "更新失败" }, { status: 500 })
