@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Activity, Plus, Trash2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Activity, Plus, Trash2, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 const EXERCISE_TYPES = [
@@ -41,6 +42,14 @@ export default function ExercisePage() {
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [calories, setCalories] = useState<number | "">("")
+
+  // 编辑相关状态
+  const [editingRecord, setEditingRecord] = useState<ExerciseRecord | null>(null)
+  const [editType, setEditType] = useState("")
+  const [editSubtype, setEditSubtype] = useState("")
+  const [editStartTime, setEditStartTime] = useState("")
+  const [editEndTime, setEditEndTime] = useState("")
+  const [editCalories, setEditCalories] = useState<number | "">("")
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -99,6 +108,44 @@ export default function ExercisePage() {
       }
     } catch {
       toast.error("删除失败")
+    }
+  }
+
+  const openEditExercise = (record: ExerciseRecord) => {
+    setEditingRecord(record)
+    setEditType(record.type)
+    setEditSubtype(record.subtype || "")
+    setEditStartTime(record.startTime || "")
+    setEditEndTime(record.endTime || "")
+    setEditCalories(record.calories || "")
+  }
+
+  const updateExercise = async () => {
+    if (!editingRecord) return
+
+    try {
+      const res = await fetch(`/api/exercise/${editingRecord.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: editType,
+          subtype: editType === "ball" ? editSubtype : null,
+          startTime: editStartTime || null,
+          endTime: editEndTime || null,
+          calories: editCalories || null
+        })
+      })
+
+      if (res.ok) {
+        toast.success("已更新")
+        setEditingRecord(null)
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
+      }
+    } catch {
+      toast.error("操作失败")
     }
   }
 
@@ -240,9 +287,14 @@ export default function ExercisePage() {
                           </span>
                         )}
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => deleteRecord(record.id)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEditExercise(record)}>
+                          <Pencil className="h-4 w-4 text-blue-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteRecord(record.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </div>
                   )
                 })
@@ -251,6 +303,87 @@ export default function ExercisePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 编辑运动记录对话框 */}
+      <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑运动记录</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>运动类型</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {EXERCISE_TYPES.map((item) => (
+                  <Button
+                    key={item.type}
+                    variant={editType === item.type ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setEditType(item.type)}
+                  >
+                    <span className="mr-1">{item.emoji}</span>
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {editType === "ball" && (
+              <div className="space-y-2">
+                <Label>球类运动</Label>
+                <Select value={editSubtype} onValueChange={(v) => v && setEditSubtype(v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择球类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BALL_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>开始时间</Label>
+                <Input
+                  type="time"
+                  value={editStartTime}
+                  onChange={(e) => setEditStartTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>结束时间</Label>
+                <Input
+                  type="time"
+                  value={editEndTime}
+                  onChange={(e) => setEditEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>热量消耗 (kcal)</Label>
+              <Input
+                type="number"
+                placeholder="例如 320"
+                value={editCalories}
+                onChange={(e) => setEditCalories(e.target.value ? Number(e.target.value) : "")}
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditingRecord(null)}>
+                取消
+              </Button>
+              <Button onClick={updateExercise}>
+                保存
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
