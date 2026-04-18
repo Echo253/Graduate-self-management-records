@@ -189,6 +189,9 @@ export default function IntakePage() {
         toast.success("已更新")
         setEditingCoffee(null)
         fetchTodayData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
       }
     } catch {
       toast.error("更新失败")
