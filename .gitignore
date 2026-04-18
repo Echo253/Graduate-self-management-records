@@ -44,3 +44,11 @@ next-env.d.ts
 
 # User uploads
 /uploads/
+
+# AI / IDE
+.claude/
+.idea/
+.impeccable.md
+AGENTS.md
+CLAUDE.md
+docs/superpowers/
