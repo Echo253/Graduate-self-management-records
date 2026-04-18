@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Coffee, Droplets, Plus, Trash2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Coffee, Droplets, Plus, Trash2, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 const DEFAULT_COFFEE_DATA: Record<string, Record<string, number>> = {
@@ -63,6 +64,13 @@ export default function IntakePage() {
   // 饮水表单
   const [waterAmount, setWaterAmount] = useState(200)
 
+  // 咖啡编辑状态
+  const [editingCoffee, setEditingCoffee] = useState<CoffeeRecord | null>(null)
+  const [editBrand, setEditBrand] = useState("")
+  const [editCoffeeType, setEditCoffeeType] = useState("")
+  const [editCaffeine, setEditCaffeine] = useState(0)
+  const [editCustomName, setEditCustomName] = useState("")
+
   const today = new Date().toISOString().split("T")[0]
 
   const fetchTodayData = useCallback(async () => {
@@ -88,6 +96,16 @@ export default function IntakePage() {
       setCaffeine(types[coffeeType])
     }
   }, [brand, coffeeType])
+
+  // 编辑时自动更新咖啡因含量
+  useEffect(() => {
+    if (editingCoffee) {
+      const types = DEFAULT_COFFEE_DATA[editBrand]
+      if (types && types[editCoffeeType]) {
+        setEditCaffeine(types[editCoffeeType])
+      }
+    }
+  }, [editingCoffee, editBrand, editCoffeeType])
 
   const addCoffee = async () => {
     try {
@@ -143,6 +161,37 @@ export default function IntakePage() {
       }
     } catch {
       toast.error("删除失败")
+    }
+  }
+
+  const openEditCoffee = (record: CoffeeRecord) => {
+    setEditingCoffee(record)
+    setEditBrand(record.brand)
+    setEditCoffeeType(record.type)
+    setEditCaffeine(record.caffeine)
+    setEditCustomName(record.customName || "")
+  }
+
+  const updateCoffee = async () => {
+    if (!editingCoffee) return
+    try {
+      const res = await fetch(`/api/coffee/${editingCoffee.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand: editBrand,
+          type: editCoffeeType,
+          caffeine: editCaffeine,
+          customName: editCustomName || null
+        })
+      })
+      if (res.ok) {
+        toast.success("已更新")
+        setEditingCoffee(null)
+        fetchTodayData()
+      }
+    } catch {
+      toast.error("更新失败")
     }
   }
 
@@ -253,9 +302,14 @@ export default function IntakePage() {
                         <Badge variant="secondary" className="ml-2">{record.caffeine}mg</Badge>
                         <span className="text-gray-400 text-xs ml-2">{record.time}</span>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => deleteCoffee(record.id)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEditCoffee(record)}>
+                          <Pencil className="h-4 w-4 text-gray-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteCoffee(record.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -340,6 +394,73 @@ export default function IntakePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 咖啡编辑对话框 */}
+      <Dialog open={!!editingCoffee} onOpenChange={() => setEditingCoffee(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑咖啡记录</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>品牌</Label>
+                <Select value={editBrand} onValueChange={(v) => v && setEditBrand(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(DEFAULT_COFFEE_DATA).map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>品类</Label>
+                <Select value={editCoffeeType} onValueChange={(v) => v && setEditCoffeeType(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(DEFAULT_COFFEE_DATA[editBrand] || {}).map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-600">咖啡因含量:</span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={editCaffeine}
+                  onChange={(e) => setEditCaffeine(Number(e.target.value))}
+                  className="w-20 text-center"
+                />
+                <span className="text-gray-600">mg/杯</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>产品名称（可选）</Label>
+              <Input
+                placeholder="如：超大杯少糖"
+                value={editCustomName}
+                onChange={(e) => setEditCustomName(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEditingCoffee(null)} className="flex-1">
+                取消
+              </Button>
+              <Button onClick={updateCoffee} className="flex-1">
+                保存
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
