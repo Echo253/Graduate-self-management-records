@@ -31,22 +31,19 @@ export default function PrivateSpacePage() {
     updateConfig,
     exportData,
     importData,
-    clearAllData
+    clearAllData,
+    changePassword
   } = usePrivateSpace()
 
   const [activeTab, setActiveTab] = useState('record')
 
   // 修改密码功能
   const handleChangePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
-    // 验证原密码
-    const testSuccess = await authenticate(oldPassword)
-    if (!testSuccess) {
-      return false
+    const result = await changePassword(oldPassword, newPassword)
+    if (!result.success && result.error) {
+      toast.error(result.error)
     }
-    // 更新密码后需要重新加密所有数据
-    // 这里简化处理：提示用户需要重新设置
-    toast.info('密码修改功能需要重新加密所有数据，请先导出备份')
-    return false
+    return result.success
   }
 
   if (loading) {
