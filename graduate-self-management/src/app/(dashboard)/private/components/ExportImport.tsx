@@ -171,10 +171,8 @@ export function ExportImport({ onExport, onImport, onClear }: ExportImportProps)
         </CardHeader>
         <CardContent>
           <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
-                清除所有数据
-              </Button>
+            <DialogTrigger render={<Button variant="destructive" className="w-full" />}>
+              清除所有数据
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

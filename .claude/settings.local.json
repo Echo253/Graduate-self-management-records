@@ -4,7 +4,9 @@
       "Bash(npx)",
       "Bash(npm)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npx tsc *)",
+      "Bash(git commit *)"
     ]
   }
 }

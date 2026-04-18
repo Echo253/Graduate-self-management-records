@@ -16,7 +16,7 @@ export function LoadingSkeleton({ type = "page", count = 3 }: LoadingSkeletonPro
       transition: {
         duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut",
+        ease: "easeInOut" as const,
       },
     },
   }
