@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
@@ -23,10 +24,14 @@ import {
   BarChart3,
   User,
   LogOut,
-  Menu
+  Menu,
+  Sun,
+  Moon,
+  Monitor
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { PageTransition } from "@/components/ui/PageTransition"
 
 const navItems = [
   { href: "/", label: "打卡记录", icon: Clock },
@@ -44,19 +49,58 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const ThemeToggle = () => {
+    if (!mounted) return null
+
+    return (
+      <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+        <Button
+          variant={theme === 'light' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setTheme('light')}
+          className="h-8 w-8 p-0"
+        >
+          <Sun className="h-4 w-4" />
+        </Button>
+        <Button
+          variant={theme === 'dark' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setTheme('dark')}
+          className="h-8 w-8 p-0"
+        >
+          <Moon className="h-4 w-4" />
+        </Button>
+        <Button
+          variant={theme === 'system' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setTheme('system')}
+          className="h-8 w-8 p-0"
+        >
+          <Monitor className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
 
   const NavContent = () => (
     <>
       <div className="p-4">
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-sky-50 to-blue-100 border border-blue-200">
-          <Avatar className="h-12 w-12 border-2 border-white shadow">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-accent border border-border">
+          <Avatar className="h-12 w-12 border-2 border-background shadow">
             <AvatarImage src={session?.user?.avatar || ""} />
             <AvatarFallback>{session?.user?.name?.[0] || "U"}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="text-xs uppercase tracking-wide text-blue-500">当前用户</div>
-            <div className="font-bold text-gray-800 truncate">{session?.user?.name}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">当前用户</div>
+            <div className="font-bold text-foreground truncate">{session?.user?.name}</div>
           </div>
         </div>
       </div>
@@ -71,10 +115,10 @@ export default function DashboardLayout({
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                 isActive
-                  ? "bg-primary text-white"
-                  : "hover:bg-gray-100 text-gray-700"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent text-foreground"
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -83,6 +127,15 @@ export default function DashboardLayout({
           )
         })}
       </nav>
+
+      <Separator />
+
+      <div className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">主题</span>
+          <ThemeToggle />
+        </div>
+      </div>
 
       <Separator />
 
@@ -95,7 +148,7 @@ export default function DashboardLayout({
         </Link>
         <Button
           variant="outline"
-          className="w-full justify-start gap-2 text-red-600 hover:text-red-700"
+          className="w-full justify-start gap-2 text-destructive hover:text-destructive"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           <LogOut className="h-4 w-4" />
@@ -106,15 +159,15 @@ export default function DashboardLayout({
   )
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col bg-white border-r shadow-sm">
+      <aside className="hidden md:flex w-64 flex-col bg-card border-r">
         <NavContent />
       </aside>
 
       {/* Mobile Header & Sheet */}
       <div className="flex flex-col flex-1">
-        <header className="md:hidden flex items-center justify-between p-4 bg-white border-b shadow-sm">
+        <header className="md:hidden flex items-center justify-between p-4 bg-card border-b">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               render={
@@ -135,7 +188,7 @@ export default function DashboardLayout({
         </header>
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </div>

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Play, Pause, Square, RotateCcw, Pencil } from "lucide-react"
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton"
+import { Play, Pause, Square, RotateCcw, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 type WorkSession = {
@@ -224,7 +225,7 @@ export default function CheckinPage() {
   const isResting = !!todayData.activeRestSession
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">加载中...</div>
+    return <LoadingSkeleton type="page" />
   }
 
   return (
@@ -242,9 +243,9 @@ export default function CheckinPage() {
             <div className="text-4xl font-bold text-primary">
               {isWorking ? "工作中" : isResting ? "休息中" : "空闲中"}
             </div>
-            <div className="text-2xl text-gray-600">{formatTime(timer)}</div>
+            <div className="text-2xl text-muted-foreground">{formatTime(timer)}</div>
             {isResting && (
-              <div className="text-lg text-gray-500">休息: {formatTime(restTimer)}</div>
+              <div className="text-lg text-muted-foreground">休息: {formatTime(restTimer)}</div>
             )}
           </div>
 
@@ -278,13 +279,13 @@ export default function CheckinPage() {
 
           {/* 今日统计 */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{todayData.totalWork}</div>
-              <div className="text-xs text-gray-600">工作(分钟)</div>
+            <div className="bg-[oklch(0.95_0.05_250)] dark:bg-[oklch(0.25_0.05_250)] rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-[var(--color-work)]">{todayData.totalWork}</div>
+              <div className="text-xs text-muted-foreground">工作(分钟)</div>
             </div>
-            <div className="bg-orange-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">{todayData.totalRest}</div>
-              <div className="text-xs text-gray-600">休息(分钟)</div>
+            <div className="bg-[oklch(0.95_0.05_142)] dark:bg-[oklch(0.25_0.05_142)] rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-[var(--color-rest)]">{todayData.totalRest}</div>
+              <div className="text-xs text-muted-foreground">休息(分钟)</div>
             </div>
           </div>
         </CardContent>
@@ -298,14 +299,14 @@ export default function CheckinPage() {
           </CardHeader>
           <CardContent>
             {todayData.workSessions.length === 0 ? (
-              <p className="text-gray-500 text-sm">暂无工作记录</p>
+              <p className="text-muted-foreground text-sm">暂无工作记录</p>
             ) : (
               <div className="space-y-2">
                 {todayData.workSessions.map((session) => (
-                  <div key={session.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <div key={session.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                     <div>
                       <span className="font-medium">{session.startTime}</span>
-                      <span className="text-gray-400 mx-1">-</span>
+                      <span className="text-muted-foreground mx-1">-</span>
                       <span>{session.endTime || "进行中"}</span>
                       {session.duration != null && (
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
@@ -316,17 +317,15 @@ export default function CheckinPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditSession("work", session)}
-                        className="text-blue-500 hover:text-blue-700"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteSession("work", session.id)}
-                        className="text-red-500 hover:text-red-700"
                       >
-                        删除
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
                   </div>
@@ -342,14 +341,14 @@ export default function CheckinPage() {
           </CardHeader>
           <CardContent>
             {todayData.restSessions.length === 0 ? (
-              <p className="text-gray-500 text-sm">暂无休息记录</p>
+              <p className="text-muted-foreground text-sm">暂无休息记录</p>
             ) : (
               <div className="space-y-2">
                 {todayData.restSessions.map((session) => (
-                  <div key={session.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <div key={session.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                     <div>
                       <span className="font-medium">{session.startTime}</span>
-                      <span className="text-gray-400 mx-1">-</span>
+                      <span className="text-muted-foreground mx-1">-</span>
                       <span>{session.endTime || "进行中"}</span>
                       {session.duration != null && (
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
@@ -360,17 +359,15 @@ export default function CheckinPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditSession("rest", session)}
-                        className="text-blue-500 hover:text-blue-700"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteSession("rest", session.id)}
-                        className="text-red-500 hover:text-red-700"
                       >
-                        删除
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
                   </div>
