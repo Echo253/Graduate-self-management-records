@@ -1,5 +1,10 @@
 // src/lib/encryption.ts
 
+// 加密相关常量
+const SALT_LENGTH = 16  // bytes
+const IV_LENGTH = 12    // bytes (optimal for GCM)
+const PBKDF2_ITERATIONS = 100000
+
 /**
  * 使用 PBKDF2 从密码派生密钥
  */
@@ -17,7 +22,7 @@ export async function deriveKey(password: string, salt: Uint8Array): Promise<Cry
     {
       name: 'PBKDF2',
       salt: salt as BufferSource,
-      iterations: 100000,
+      iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256'
     },
     keyMaterial,
@@ -31,8 +36,8 @@ export async function deriveKey(password: string, salt: Uint8Array): Promise<Cry
  * 加密数据
  */
 export async function encrypt(data: unknown, password: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(16))
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
   const key = await deriveKey(password, salt)
 
   const encoder = new TextEncoder()
@@ -44,11 +49,11 @@ export async function encrypt(data: unknown, password: string): Promise<string> 
     encoded
   )
 
-  // 组合: salt(16) + iv(12) + encrypted
-  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength)
+  // 组合: salt + iv + encrypted
+  const combined = new Uint8Array(SALT_LENGTH + IV_LENGTH + encrypted.byteLength)
   combined.set(salt, 0)
-  combined.set(iv, salt.length)
-  combined.set(new Uint8Array(encrypted), salt.length + iv.length)
+  combined.set(iv, SALT_LENGTH)
+  combined.set(new Uint8Array(encrypted), SALT_LENGTH + IV_LENGTH)
 
   return btoa(String.fromCharCode(...Array.from(combined)))
 }
@@ -59,9 +64,9 @@ export async function encrypt(data: unknown, password: string): Promise<string> 
 export async function decrypt<T>(encryptedString: string, password: string): Promise<T> {
   const combined = Uint8Array.from(atob(encryptedString), c => c.charCodeAt(0))
 
-  const salt = combined.slice(0, 16)
-  const iv = combined.slice(16, 28)
-  const encrypted = combined.slice(28)
+  const salt = combined.slice(0, SALT_LENGTH)
+  const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
+  const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH)
 
   const key = await deriveKey(password, salt)
 
@@ -89,9 +94,19 @@ export async function verifyPassword(encryptedString: string, password: string):
 
 /**
  * 生成随机密码（用于测试）
+ * 使用拒绝采样法消除模运算偏差，确保均匀分布
  */
 export function generateRandomPassword(length: number = 16): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-  const array = crypto.getRandomValues(new Uint8Array(length))
-  return Array.from(array, x => chars[x % chars.length]).join('')
+  const maxValid = Math.floor(256 / chars.length) * chars.length
+  let result = ''
+  while (result.length < length) {
+    const array = crypto.getRandomValues(new Uint8Array(length * 2))
+    for (const x of array) {
+      if (x < maxValid && result.length < length) {
+        result += chars[x % chars.length]
+      }
+    }
+  }
+  return result
 }
