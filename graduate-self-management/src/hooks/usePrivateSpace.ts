@@ -13,8 +13,6 @@ import {
   clearAll
 } from '@/lib/private-db'
 
-const GRACE_STORAGE_KEY = 'private-space-last-auth'
-const SESSION_PASSWORD_KEY = 'private-space-password'
 const ENTRY_CONFIG_KEY = 'private-space-entry'
 
 export function usePrivateSpace() {
@@ -35,30 +33,7 @@ export function usePrivateSpace() {
         return
       }
 
-      // 检查 session 中是否有密码（已验证过）
-      const sessionPassword = sessionStorage.getItem(SESSION_PASSWORD_KEY)
-      if (sessionPassword) {
-        const cfg = await decrypt<PrivateSpaceConfig>(encryptedConfig, sessionPassword)
-        setConfig(cfg)
-        setPassword(sessionPassword)
-
-        // 加载记录
-        const encryptedRecords = await getRecords()
-        if (encryptedRecords) {
-          const recs = await decrypt<PrivateRecord[]>(encryptedRecords, sessionPassword)
-          setRecords(recs)
-        }
-
-        setIsInitialized(true)
-        setIsAuthenticated(true)
-        setLoading(false)
-        return
-      }
-
-      // 检查免验证期
-      const cfg = await decrypt<PrivateSpaceConfig>(encryptedConfig, '')
-      // 这里无法解密，需要用户输入密码
-      setConfig(null)
+      // 每次都需要重新验证密码，不使用 session 缓存
       setIsInitialized(true)
       setIsAuthenticated(false)
       setLoading(false)
@@ -102,8 +77,6 @@ export function usePrivateSpace() {
     setPassword(newPassword)
     setIsInitialized(true)
     setIsAuthenticated(true)
-    sessionStorage.setItem(SESSION_PASSWORD_KEY, newPassword)
-    sessionStorage.setItem(GRACE_STORAGE_KEY, Date.now().toString())
   }, [])
 
   // 验证密码
@@ -124,8 +97,6 @@ export function usePrivateSpace() {
       }
 
       setIsAuthenticated(true)
-      sessionStorage.setItem(SESSION_PASSWORD_KEY, inputPassword)
-      sessionStorage.setItem(GRACE_STORAGE_KEY, Date.now().toString())
       return true
     } catch {
       return false
@@ -137,8 +108,6 @@ export function usePrivateSpace() {
     setIsAuthenticated(false)
     setPassword(null)
     setRecords([])
-    sessionStorage.removeItem(SESSION_PASSWORD_KEY)
-    sessionStorage.removeItem(GRACE_STORAGE_KEY)
   }, [])
 
   // 添加记录
@@ -228,12 +197,10 @@ export function usePrivateSpace() {
       await saveRecords(newEncryptedRecords)
       await saveConfig(newEncryptedConfig)
 
-      // 5. 更新内存状态和 session
+      // 5. 更新内存状态
       setConfig(newConfig)
       setPassword(newPassword)
       setRecords(decryptedRecords)
-      sessionStorage.setItem(SESSION_PASSWORD_KEY, newPassword)
-      sessionStorage.setItem(GRACE_STORAGE_KEY, Date.now().toString())
 
       return { success: true }
     } catch (error) {
@@ -289,8 +256,6 @@ export function usePrivateSpace() {
     setPassword(null)
     setIsInitialized(false)
     setIsAuthenticated(false)
-    sessionStorage.removeItem(SESSION_PASSWORD_KEY)
-    sessionStorage.removeItem(GRACE_STORAGE_KEY)
     localStorage.removeItem(ENTRY_CONFIG_KEY)
   }, [])
 

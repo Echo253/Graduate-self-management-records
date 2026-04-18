@@ -13,12 +13,10 @@ interface SettingsPanelProps {
   config: {
     entryMode: 'hidden' | 'visible'
     entryName: string
-    gracePeriod: number
   }
   onUpdateConfig: (updates: {
     entryMode?: 'hidden' | 'visible'
     entryName?: string
-    gracePeriod?: number
   }) => Promise<void>
   onChangePassword: (oldPassword: string, newPassword: string) => Promise<boolean>
 }
@@ -26,7 +24,6 @@ interface SettingsPanelProps {
 export function SettingsPanel({ config, onUpdateConfig, onChangePassword }: SettingsPanelProps) {
   const [entryMode, setEntryMode] = useState<'hidden' | 'visible'>(config.entryMode)
   const [entryName, setEntryName] = useState(config.entryName)
-  const [gracePeriod, setGracePeriod] = useState(config.gracePeriod)
 
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -40,8 +37,7 @@ export function SettingsPanel({ config, onUpdateConfig, onChangePassword }: Sett
     try {
       await onUpdateConfig({
         entryMode,
-        entryName,
-        gracePeriod
+        entryName
       })
       // 同步更新 localStorage
       localStorage.setItem('private-space-entry', JSON.stringify({
@@ -126,22 +122,6 @@ export function SettingsPanel({ config, onUpdateConfig, onChangePassword }: Sett
               />
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label>免验证时长</Label>
-            <Select value={gracePeriod.toString()} onValueChange={(v) => v && setGracePeriod(parseInt(v))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">每次都需验证</SelectItem>
-                <SelectItem value="5">5 分钟内免验证</SelectItem>
-                <SelectItem value="15">15 分钟内免验证</SelectItem>
-                <SelectItem value="30">30 分钟内免验证</SelectItem>
-                <SelectItem value="60">1 小时内免验证</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           <Button onClick={handleSaveConfig} disabled={saving} className="w-full gap-2">
             <Save className="h-4 w-4" />

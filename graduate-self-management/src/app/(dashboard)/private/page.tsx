@@ -137,8 +137,7 @@ export default function PrivateSpacePage() {
           <SettingsPanel
             config={{
               entryMode: config?.entryMode || 'visible',
-              entryName: config?.entryName || '私密空间',
-              gracePeriod: config?.gracePeriod || 0
+              entryName: config?.entryName || '私密空间'
             }}
             onUpdateConfig={updateConfig}
             onChangePassword={handleChangePassword}
