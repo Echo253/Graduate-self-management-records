@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="802d7c7b-48cf-4239-bffd-0a2aa4eb1749" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/graduate-self-management/graduate-self-management/package-lock.json" afterDir="false" />
@@ -92,7 +93,7 @@
       <workItem from="1775743260822" duration="4895000" />
       <workItem from="1775749483608" duration="618000" />
       <workItem from="1775750113785" duration="1000" />
-      <workItem from="1776486943198" duration="23621000" />
+      <workItem from="1776486943198" duration="24263000" />
     </task>
     <servers />
   </component>

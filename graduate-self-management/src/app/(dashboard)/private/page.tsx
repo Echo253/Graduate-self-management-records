@@ -9,6 +9,7 @@ import { RecordForm } from './components/RecordForm'
 import { RecordList } from './components/RecordList'
 import { StatsView } from './components/StatsView'
 import { ExportImport } from './components/ExportImport'
+import { SettingsPanel } from './components/SettingsPanel'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LogOut, Settings } from 'lucide-react'
@@ -27,12 +28,26 @@ export default function PrivateSpacePage() {
     logout,
     addRecord,
     deleteRecord,
+    updateConfig,
     exportData,
     importData,
     clearAllData
   } = usePrivateSpace()
 
-  const [showSettings, setShowSettings] = useState(false)
+  const [activeTab, setActiveTab] = useState('record')
+
+  // 修改密码功能
+  const handleChangePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
+    // 验证原密码
+    const testSuccess = await authenticate(oldPassword)
+    if (!testSuccess) {
+      return false
+    }
+    // 更新密码后需要重新加密所有数据
+    // 这里简化处理：提示用户需要重新设置
+    toast.info('密码修改功能需要重新加密所有数据，请先导出备份')
+    return false
+  }
 
   if (loading) {
     return <LoadingSkeleton type="page" />
@@ -77,7 +92,11 @@ export default function PrivateSpacePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{config?.entryName || '私密空间'}</h1>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveTab('settings')}
+          >
             <Settings className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={logout}>
@@ -86,7 +105,7 @@ export default function PrivateSpacePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="record">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="record">记录</TabsTrigger>
           <TabsTrigger value="history">历史</TabsTrigger>
@@ -117,7 +136,16 @@ export default function PrivateSpacePage() {
           <StatsView records={records} />
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-4">
+        <TabsContent value="settings" className="mt-4 space-y-4">
+          <SettingsPanel
+            config={{
+              entryMode: config?.entryMode || 'visible',
+              entryName: config?.entryName || '私密空间',
+              gracePeriod: config?.gracePeriod || 0
+            }}
+            onUpdateConfig={updateConfig}
+            onChangePassword={handleChangePassword}
+          />
           <ExportImport
             onExport={exportData}
             onImport={importData}

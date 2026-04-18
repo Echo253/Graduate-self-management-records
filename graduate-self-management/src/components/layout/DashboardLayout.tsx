@@ -145,18 +145,19 @@ export default function DashboardLayout({
             </Link>
           )
         })}
-        {privateSpaceEntry?.mode === 'visible' && (
+        {/* 私密空间入口：默认显示，用户可设置隐藏 */}
+        {(privateSpaceEntry?.mode === 'visible' || privateSpaceEntry === null) && (
           <Link
-            href="/private-space"
+            href="/private"
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-              pathname === "/private-space"
+              pathname === "/private"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "hover:bg-accent text-foreground"
             }`}
           >
             <Lock className="h-5 w-5" />
-            <span className="font-medium">{privateSpaceEntry.name || "私密空间"}</span>
+            <span className="font-medium">{privateSpaceEntry?.name || "私密空间"}</span>
           </Link>
         )}
       </nav>
