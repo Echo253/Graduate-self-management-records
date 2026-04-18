@@ -5,7 +5,10 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, Square, RotateCcw } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Play, Pause, Square, RotateCcw, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 type WorkSession = {
@@ -35,6 +38,11 @@ type TodayData = {
   activeRestSession: RestSession | null
 }
 
+type EditingSession = {
+  type: "work" | "rest"
+  session: WorkSession | RestSession
+}
+
 export default function CheckinPage() {
   const { data: session } = useSession()
   const [todayData, setTodayData] = useState<TodayData>({
@@ -48,6 +56,9 @@ export default function CheckinPage() {
   const [loading, setLoading] = useState(true)
   const [timer, setTimer] = useState(0)
   const [restTimer, setRestTimer] = useState(0)
+  const [editingSession, setEditingSession] = useState<EditingSession | null>(null)
+  const [editStartTime, setEditStartTime] = useState("")
+  const [editEndTime, setEditEndTime] = useState("")
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -176,6 +187,39 @@ export default function CheckinPage() {
     }
   }
 
+  const openEditSession = (type: "work" | "rest", session: WorkSession | RestSession) => {
+    setEditingSession({ type, session })
+    setEditStartTime(session.startTime)
+    setEditEndTime(session.endTime || "")
+  }
+
+  const updateSession = async () => {
+    if (!editingSession) return
+
+    const body: { startTime?: string; endTime?: string } = {}
+    if (editStartTime) body.startTime = editStartTime
+    if (editEndTime) body.endTime = editEndTime
+
+    try {
+      const endpoint = editingSession.type === "work" ? "work-sessions" : "rest-sessions"
+      const res = await fetch(`/api/${endpoint}/${editingSession.session.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+      if (res.ok) {
+        toast.success("更新成功")
+        setEditingSession(null)
+        fetchTodayData()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "更新失败")
+      }
+    } catch {
+      toast.error("更新失败")
+    }
+  }
+
   const isWorking = !!todayData.activeWorkSession
   const isResting = !!todayData.activeRestSession
 
@@ -267,14 +311,24 @@ export default function CheckinPage() {
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSession("work", session.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      删除
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditSession("work", session)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteSession("work", session.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        删除
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -301,14 +355,24 @@ export default function CheckinPage() {
                         <Badge variant="secondary" className="ml-2">{session.duration}分钟</Badge>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSession("rest", session.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      删除
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditSession("rest", session)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteSession("rest", session.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        删除
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -316,6 +380,43 @@ export default function CheckinPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 编辑时段对话框 */}
+      <Dialog open={!!editingSession} onOpenChange={(open) => !open && setEditingSession(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑{editingSession?.type === "work" ? "工作" : "休息"}时段</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="startTime">开始时间</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={editStartTime}
+                onChange={(e) => setEditStartTime(e.target.value)}
+                placeholder="HH:mm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endTime">结束时间</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={editEndTime}
+                onChange={(e) => setEditEndTime(e.target.value)}
+                placeholder="HH:mm"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingSession(null)}>
+                取消
+              </Button>
+              <Button onClick={updateSession}>保存</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
